@@ -152,6 +152,22 @@ For OpenCode, the optional **OpenCode model** field selects the initial model fo
 
 In an open OpenCode terminal, **Models** opens the native model picker using the default `Ctrl+X M` shortcut. Select a model there to change the active worker without restarting it or losing a draft. If you customized that binding, use your configured shortcut or `/models` inside the terminal. Resuming a saved session lets OpenCode restore its current model instead of forcing the initial Office selection again.
 
+### Local OpenCode with Ollama
+
+The repository includes an [`opencode.json`](opencode.json) that selects the local `qwen3.5:4b` model through Ollama. OpenCode's reasoning effort is set to `none` for this model; Ollama's OpenAI-compatible endpoint otherwise leaves Qwen's default reasoning enabled, which can make responses much slower. The config requests a 65,536-token context window.
+
+Install [Ollama](https://ollama.com/download) and [OpenCode](https://opencode.ai/docs/) on the machine running Agent Office. On Linux, OpenCode can also be installed without root using `npm install --global --prefix "$HOME/.local" opencode-ai`; add `$HOME/.local/bin` to `PATH` if it is not already there. Ollama needs to be able to use your GPU driver for GPU acceleration; on WSL, install the current NVIDIA driver on Windows and enable WSL GPU support.
+
+With Node.js 20+, npm, Ollama, and OpenCode available on `PATH`, start the full local development setup:
+
+```bash
+make start-local
+```
+
+This starts Ollama if it is not already listening, sets `OLLAMA_CONTEXT_LENGTH=65536` for a newly started server, downloads `qwen3.5:4b` if needed, then runs Vite and Agent Office. Open <http://localhost:5173> and sign in with the default local password `dev`. The server defaults to the OpenCode agent; select **OpenCode** when hiring a worker. The Ollama server stays running after Ctrl+C stops the development servers.
+
+Make defaults can be overridden, for example `make start-local OFFICE_PASSWORD='my-local-password' OFFICE_PORT=4700 VITE_PORT=5174`. Available variables include `OLLAMA_MODEL` (default `qwen3.5:4b`), `OLLAMA_CONTEXT_LENGTH` (default `65536`), `OLLAMA_HOST` (default `127.0.0.1:11434`), `OFFICE_AGENT` (default `opencode`), `OFFICE_HOME` (default `~/agent-office`), `OFFICE_HOST` / `OFFICE_PORT` (defaults `127.0.0.1` / `4600`), `OFFICE_PASSWORD` (default `dev`), and `VITE_HOST` / `VITE_PORT` (defaults `127.0.0.1` / `5173`). If you change `OLLAMA_MODEL` or `OLLAMA_HOST`, update the matching model ID or `baseURL` in `opencode.json` too. If an Ollama server is already running, Make reuses it without changing its context setting; restart that server with `OLLAMA_CONTEXT_LENGTH=65536` if it was started with a smaller context.
+
 Claude Code remains the default. To default to OpenCode:
 
 ```bash
