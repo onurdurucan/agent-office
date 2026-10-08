@@ -169,6 +169,14 @@ This starts Ollama if it is not already listening, sets `OLLAMA_CONTEXT_LENGTH=6
 
 Make defaults can be overridden, for example `make start-local OFFICE_PASSWORD='my-local-password' OFFICE_PORT=4700 VITE_PORT=5174`. Available variables include `OLLAMA_MODEL` (default `qwen3.5:4b`), `OLLAMA_CONTEXT_LENGTH` (default `65536`), `OLLAMA_HOST` (default `127.0.0.1:11434`), `OFFICE_AGENT` (default `opencode`), `OFFICE_HOME` (default `~/agent-office`), `OFFICE_HOST` / `OFFICE_PORT` (defaults `127.0.0.1` / `4600`), `OFFICE_PASSWORD` (default `dev`), and `VITE_HOST` / `VITE_PORT` (defaults `127.0.0.1` / `5173`). If you change `OLLAMA_MODEL` or `OLLAMA_HOST`, update the matching model ID or `baseURL` in `opencode.json` too. If an Ollama server is already running, Make reuses it without changing its context setting; restart that server with `OLLAMA_CONTEXT_LENGTH=65536` if it was started with a smaller context.
 
+To let other devices on your **trusted local network** connect, run:
+
+```bash
+make start-network NETWORK_PASSWORD="$(openssl rand -hex 24)"
+```
+
+Open the **Network** URL printed by Vite (port 5173 by default) on the other devices and give them the password you supplied. This binds Agent Office and Vite to all network interfaces; allow the `VITE_PORT` TCP port through your machine's firewall for your private network only. Do not expose or port-forward these development servers to the public internet. The connection is HTTP, so voice and screen sharing won't work from other devices without HTTPS. The shared password gives every person admin access: invite each teammate from **🔑 Accounts** with their own Member account, then turn off the shared password there.
+
 Claude Code remains the default. To default to OpenCode:
 
 ```bash
