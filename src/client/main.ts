@@ -38,6 +38,7 @@ import { openTeam, routeTeamMessage } from './ui/team';
 import { openAccounts, routeAccountsMessage } from './ui/accounts';
 import { mountServicesButton, openServices } from './ui/services';
 import { mountQueueButton, openQueue } from './ui/queue';
+import { openManager, routeManagerMessage } from './ui/manager';
 import { openUpgrade, restarting, showRestarting, showUpgraded } from './ui/upgrade';
 import { openHelp, renderCaffeine, renderChat, renderPeople, renderWorkers, updateSpeaking } from './ui/hud';
 import { openCharacter } from './ui/character';
@@ -283,6 +284,7 @@ net.onMessage((msg) => {
   routePullMessage(msg);
   routeElevatorMessage(msg);
   routeWhiteboardMessage(msg, net);
+  routeManagerMessage(msg);
   switch (msg.t) {
     case 'welcome': {
       // A few pings, to line this page's clock up with the office's for the jukebox.
@@ -1488,6 +1490,7 @@ $('btn-issues').addEventListener('click', () => openBoard('issues', net, boardAc
 $('btn-pulls').addEventListener('click', () => openBoard('pulls', net, boardActions()));
 mountServicesButton($('btn-services'));
 mountQueueButton($('btn-queue'), showQueue);
+$('btn-manager').addEventListener('click', () => openManager(net));
 $('btn-team').addEventListener('click', () => openTeam(net));
 $('btn-accounts').addEventListener('click', () => openAccounts(net));
 store.on('me', () => $('btn-accounts').classList.toggle('hidden', !store.me.admin));

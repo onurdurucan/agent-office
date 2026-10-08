@@ -252,6 +252,14 @@ export interface QueueState {
   maxWorkers: number;
 }
 
+/** A manager suggestion is only a proposal until a person adds it to the task queue. */
+export interface ManagerPlanItem {
+  issue: number;
+  title: string;
+  prompt: string;
+  rationale: string;
+}
+
 /** Where a team webhook posts: Slack and Discord get their own message format, anything else plain JSON. */
 export type WebhookKind = 'slack' | 'discord' | 'other';
 
@@ -665,6 +673,8 @@ export type ClientMsg =
   /** Forget the finished tasks. */
   | { t: 'queue.clear' }
   | { t: 'queue.limit'; maxWorkers: number }
+  | { t: 'manager.plan'; requestId: string; goal: string; issues: number[]; provider: AgentProvider; model?: string }
+  | { t: 'manager.cancel'; requestId: string }
   /** Set the office's Slack / Discord webhook; '' removes it. */
   | { t: 'notify.webhook'; url: string }
   /** Post a test message through the webhook; the outcome comes back as a toast. */
@@ -797,6 +807,7 @@ export type ServerMsg =
   | { t: 'usage'; state: UsageState }
   | { t: 'limits'; state: PlanLimits }
   | { t: 'queue'; state: QueueState }
+  | { t: 'manager.plan'; requestId: string; tasks?: ManagerPlanItem[]; error?: string }
   | { t: 'notify'; state: NotifyState }
   | { t: 'sky'; state: SkyState }
   /** Sent to whoever watches that worker's changes, whenever they change. */

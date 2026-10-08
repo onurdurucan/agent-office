@@ -25,7 +25,7 @@ import { Floor, type FloorContext } from './floor.js';
 import { Sky } from './sky.js';
 import { RELAY_LOGIN, relayRequest, relayUpgrade, signInPage, stoppedPage, tunneledPort } from './relay.js';
 import { ChatLog } from './history.js';
-import type { ChatLine, ClientMsg, FloorInfo, FloorView, Me, PeerInfo, SearchResults, ServerMsg, ServicesState } from '../shared/protocol.js';
+import type { ChatLine, ClientMsg, FloorInfo, FloorView, GhIssue, Me, PeerInfo, SearchResults, ServerMsg, ServicesState } from '../shared/protocol.js';
 import { GH_COMMENT_MAX, isAgentProvider } from '../shared/protocol.js';
 import { elevatorSpot, seatAt } from '../shared/layout.js';
 import { JUKEBOX_TUNES, STREAM } from '../shared/jukebox.js';
@@ -1116,6 +1116,67 @@ export async function startServer(cfg: Config) {
       case 'queue.limit':
         floorOf(c)?.queue.setLimit(num(msg.maxWorkers));
         break;
+      case 'manager.plan': {
+        const floor = here();
+        if (!floor) break;
+        const requestId = str(msg.requestId, 64);
+        if (!/^[A-Za-z0-9-]{8,64}$/.test(requestId)) {
+          sendTo(c, { t: 'manager.plan', requestId, error: 'Invalid manager request' });
+          break;
+        }
+        if (!isAgentProvider(msg.provider) || msg.provider === 'custom' || !floor.project.agentProviders.includes(msg.provider)) {
+          sendTo(c, { t: 'manager.plan', requestId, error: 'Choose Claude Code, OpenCode, or Codex for the manager' });
+          break;
+        }
+        const goal = str(msg.goal, 2001).trim();
+        if (!goal || goal.length > 2000) {
+          sendTo(c, { t: 'manager.plan', requestId, error: 'Enter a project goal of at most 2000 characters' });
+          break;
+        }
+        if (!Array.isArray(msg.issues) || msg.issues.length < 1 || msg.issues.length > 12) {
+          sendTo(c, { t: 'manager.plan', requestId, error: 'Select between 1 and 12 open issues' });
+          break;
+        }
+        const selected = new Set<number>();
+        let invalidIssue = false;
+        for (const value of msg.issues) {
+          if (!Number.isSafeInteger(value) || value < 1 || selected.has(value)) invalidIssue = true;
+          else selected.add(value);
+        }
+        if (invalidIssue) {
+          sendTo(c, { t: 'manager.plan', requestId, error: 'Selected issue numbers must be unique positive integers' });
+          break;
+        }
+        const queued = new Set(floor.queue.state().tasks.filter((task) => task.status !== 'done' && task.issue !== undefined).map((task) => task.issue!));
+        if ([...selected].some((issue) => queued.has(issue))) {
+          sendTo(c, { t: 'manager.plan', requestId, error: 'Remove already queued issues from your selection, then try again' });
+          break;
+        }
+        const issues: GhIssue[] = [];
+        for (const number of selected) {
+          const issue = floor.github.issues.items.find((item) => item.number === number && item.state === 'OPEN');
+          if (!issue) {
+            sendTo(c, { t: 'manager.plan', requestId, error: 'One or more selected issues are no longer open; refresh the issues board' });
+            break;
+          }
+          issues.push(issue);
+        }
+        if (issues.length !== selected.size) break;
+        if (msg.model !== undefined && typeof msg.model !== 'string') {
+          sendTo(c, { t: 'manager.plan', requestId, error: 'The manager model must be text' });
+          break;
+        }
+        const model = typeof msg.model === 'string' ? str(msg.model, OPEN_CODE_MODEL_MAX + 1) : undefined;
+        void floor.manager.propose(requestId, { provider: msg.provider, model, goal, issues })
+          .then((tasks) => sendTo(c, { t: 'manager.plan', requestId, tasks }))
+          .catch((error: unknown) => sendTo(c, { t: 'manager.plan', requestId, error: error instanceof Error ? error.message : 'The manager could not prepare a plan' }));
+        break;
+      }
+      case 'manager.cancel': {
+        const requestId = str(msg.requestId, 64);
+        if (/^[A-Za-z0-9-]{8,64}$/.test(requestId)) floorOf(c)?.manager.cancel(requestId);
+        break;
+      }
       case 'notify.webhook': {
         const url = str(msg.url, 4096).trim();
         const err = webhook.set(url, who);

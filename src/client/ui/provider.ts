@@ -54,9 +54,9 @@ export function providerUsageNote(provider: AgentProvider): string {
   return 'OpenCode reports model/provider estimates; they are not billing, and arrive after the first report.';
 }
 
-function preferredProvider(options: AgentProvider[], fallback: AgentProvider): AgentProvider {
+function preferredProvider(options: AgentProvider[], fallback: AgentProvider, key = PROVIDER_KEY): AgentProvider {
   try {
-    const saved = localStorage.getItem(PROVIDER_KEY);
+    const saved = localStorage.getItem(key);
     if (saved && options.includes(saved as AgentProvider)) return saved as AgentProvider;
   } catch {
     // storage blocked
@@ -103,12 +103,12 @@ function fetchOpenCodeModels(): Promise<string[]> {
 }
 
 /** A provider selector that never offers a provider outside the server's metadata. */
-export function providerPicker(project: ProjectInfo | null, id: string, label = 'Worker provider'): ProviderPicker {
+export function providerPicker(project: ProjectInfo | null, id: string, label = 'Worker provider', preferenceKey = PROVIDER_KEY): ProviderPicker {
   const options = supportedProviders(project);
   const fallback = resolvedProvider(project?.defaultProvider, project);
   const select = h('select.provider-select', { id, 'aria-label': 'Worker provider' }) as HTMLSelectElement;
   for (const provider of options) select.append(h('option', { value: provider }, PROVIDER_LABEL[provider]));
-  select.value = preferredProvider(options, fallback);
+  select.value = preferredProvider(options, fallback, preferenceKey);
   const note = h('small.provider-note', {}, providerUsageNote(select.value as AgentProvider));
   const modelInput = h('input', {
     type: 'text',
@@ -144,7 +144,7 @@ export function providerPicker(project: ProjectInfo | null, id: string, label = 
     setModelVisibility(provider);
     if (options.includes(provider)) {
       try {
-        localStorage.setItem(PROVIDER_KEY, provider);
+        localStorage.setItem(preferenceKey, provider);
       } catch {
         // storage blocked
       }

@@ -9,6 +9,7 @@ import { configuredProvider } from './agents.js';
 import { WorkerManager, type HookEnv } from './workers.js';
 import { GitHub, MergeWatch } from './github.js';
 import { TaskQueue } from './queue.js';
+import { ProjectManager } from './manager.js';
 import { Changes } from './changes.js';
 import { Decor } from './decor.js';
 import { Dog } from './dog.js';
@@ -75,6 +76,7 @@ export class Floor {
   readonly workers: WorkerManager;
   readonly github: GitHub;
   readonly queue: TaskQueue;
+  readonly manager: ProjectManager;
   readonly changes: Changes;
   readonly decor: Decor;
   readonly jukebox: Jukebox;
@@ -97,6 +99,7 @@ export class Floor {
     mkdirSync(dataDir, { recursive: true, mode: 0o700 });
     excludeFromGit(def.dir);
     this.project = projectInfo(def.dir, def.name, ctx.agentCmd, ctx.agentArgs);
+    this.manager = new ProjectManager(ctx.agentCmd);
 
     // Before the workers, so it hears about the ones who wake up needing input.
     this.dog = new Dog(def.id, dataDir, {

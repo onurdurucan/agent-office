@@ -696,8 +696,36 @@ a.when:hover { text-decoration: underline; }
 .qchip { padding: 1px 6px; border-radius: 999px; border: 1.5px solid var(--ink); background: #e0f2fe; color: var(--ink); font-size: 10px; font-weight: 900; }
 .qchip.running { background: #d8f5e3; }
 .qchip.done { background: #fff1de; }
+.modal.manager-window { width: min(820px, 100%); }
+.manager > .note:first-child { margin: 0 0 16px; }
+.manager > textarea { margin-bottom: 14px; }
+.manager .provider-choice { margin: 0 0 16px; }
+.manager-issue-heading { display: flex; align-items: baseline; gap: 10px; }
+.manager-issue-heading h3, .manager-plan h3 { margin: 10px 0; font-size: 15px; }
+.manager-issue-heading small, .manager-plan h3 small { color: var(--muted); font-size: 12px; }
+.manager-issues { display: grid; gap: 6px; max-height: 240px; overflow: auto; padding: 8px; border: 2px solid var(--ink); border-radius: 12px; background: #fff; }
+.manager-issue { display: grid !important; grid-template-columns: 18px minmax(0, 1fr) max-content; gap: 8px; align-items: center; margin: 0 !important; padding: 6px; border-radius: 8px; cursor: pointer; }
+.manager-issue:hover { background: var(--paper-2); }
+.manager-issue span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.manager-issue small, .manager-proposal small { color: var(--muted); font-size: 11px; }
+.manager-issue input, .manager-proposal > input { accent-color: var(--accent); }
+.manager-status { margin: 12px 0; color: var(--muted); }
+.manager-plan { display: grid; gap: 8px; }
+.manager-proposal { display: flex !important; align-items: flex-start !important; gap: 10px; margin: 0 !important; padding: 12px; border: 2px solid var(--ink); border-radius: 12px; background: #fff; }
+.manager-proposal > input { flex: none; margin-top: 4px; }
+.manager-proposal-main { min-width: 0; font-weight: 600; }
+.manager-proposal-main label { margin: 0; cursor: pointer; }
+.manager-proposal-main strong { display: block; font-size: 14px; }
+.manager-proposal-main p { margin: 6px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.manager-proposal-main details { margin: 8px 0; font-size: 12px; }
+.manager-proposal-main summary { cursor: pointer; font-weight: 800; }
+.manager-proposal-main a { color: inherit; font-size: 12px; }
+.manager-window footer .grow { line-height: 1.35; }
 @media (max-width: 640px) {
   .queue-limit span { display: none; }
+  .manager-issue { grid-template-columns: 18px minmax(0, 1fr); }
+  .manager-issue small { display: none; }
+  .manager-window footer { flex-wrap: wrap; }
 }
 
 /* ---- The elevator: floors, one per project ---------------------------------------------------- */
